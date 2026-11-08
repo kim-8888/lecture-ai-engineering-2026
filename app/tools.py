@@ -5,10 +5,15 @@
 """
 
 import json
+import random
+import re
+from datetime import datetime
 from functools import cache
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+# 第3回 宿題（実装）: 学習の記録の保存先。.gitignore 済みなので fork には上がらない
+LOG_DIR = Path(__file__).resolve().parent.parent / "learning_log"
 MAX_RESULTS = 3
 
 
@@ -77,3 +82,47 @@ def get_lecture_summary(lecture: int) -> str:
         available = sorted(p.stem for p in (DATA_DIR / "lectures").glob("*.md"))
         return f"第{lecture}回の要点はまだありません。用意されている回: {', '.join(available)}"
     return path.read_text(encoding="utf-8")
+
+
+def make_quiz(lecture: int) -> str:
+    """指定した回（1始まりの整数）の用語から確認問題を1問作り、問題と答えを返す。
+
+    「第2回の確認問題を出して」「第3回の復習クイズを1問」のように、
+    確認問題・クイズ・復習問題を求められたときに使う。
+    lecture には問題を出したい回の番号を入れる（例: 2）。
+    返り値は {"question": ..., "answer": ...} の JSON 文字列。
+    """
+    glossary = load_glossary()
+    candidates = [e for e in glossary if e["lecture"] == lecture]
+    if not candidates:
+        available = sorted({e["lecture"] for e in glossary})
+        return f"第{lecture}回の用語は用語集にありません。問題を出せる回: {available}"
+    entry = random.choice(candidates)
+    return json.dumps(
+        {"question": f"「{entry['term']}」の意味は？", "answer": entry["definition"]},
+        ensure_ascii=False,
+    )
+
+
+def save_learning_log(title: str, content: str) -> str:
+    """学習の記録を learning_log/ フォルダに Markdown ファイルとして保存する。
+
+    利用者が「今日の学習を記録して」「この内容をメモに残して」のように、
+    学んだことの保存をはっきり頼んだときだけ使う。頼まれていないのに使わない。
+    title には記録の短い題名（例: "LoRAとQLoRAの違い"）、
+    content には保存する本文（学んだ要点を箇条書きなどで）を入れる。
+    ファイルを書き込む操作なので、実行前に利用者の確認が入る。
+    """
+    title = title.strip()
+    if not title or not content.strip():
+        return "title と content の両方を指定してください。"
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    now = datetime.now()
+    # ファイル名に使えない文字は _ に置き換える（日本語はそのまま使う）
+    safe_title = re.sub(r'[\\/:*?"<>|\s]+', "_", title)[:40].strip("_") or "log"
+    path = LOG_DIR / f"{now:%Y%m%d-%H%M%S}_{safe_title}.md"
+    path.write_text(
+        f"# {title}\n\n- 保存日時: {now:%Y-%m-%d %H:%M}\n\n{content.strip()}\n",
+        encoding="utf-8",
+    )
+    return f"保存しました: {path.relative_to(LOG_DIR.parent)}"
