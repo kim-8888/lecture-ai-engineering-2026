@@ -1,0 +1,14 @@
+[model] gemini-3.5-flash-lite
+LoRAとQLoRAの主な違いは、**ベースモデルの重みの保持方法と量子化の有無**にあります。
+
+* **LoRA（Low-Rank Adaptation）**
+  * 事前学習済みの重みをそのまま（通常は16ビットなどの高精度で）固定し、少数の追加パラメータ（低ランク行列）だけを学習して効率化を図る手法です。
+* **QLoRA（Quantized LoRA）**
+  * LoRAの仕組みをベースにしつつ、ベースモデルの重みを**4ビットなどにより強く量子化（圧縮）**することで、さらにメモリ消費を抑えて学習できるようにした手法です。これにより、限られたGPUメモリでもより大きなモデルを効率よく微調整できます。
+
+（参考回：第2回）
+
+--- trace ---
+[tool call]   search_glossary({'query': 'LoRA'})
+[tool return] search_glossary -> [{"term": "LoRA", "lecture": 2, "definition": "事前学習済みの重みは固定したまま、重みの更新分を2つの小さな行列の積（低ランク行列）で表し、その小さな行列だけを学習するPEFT手法。学習するパラ…
+[usage] RunUsage(cost=Decimal('0.0009398'), details={'text_prompt_tokens': 1591}, input_text_tokens=1591, input_tokens=1591, output_tokens=185, requests=2, tool_calls=1)
