@@ -25,6 +25,9 @@ run() {  # run <ログ名> <AIE_RAG_NEIGHBORS> <質問>
 AIE_RAG_NEIGHBORS=0 uv run python -m app.retrieval "LoRA QLoRA 違い" > lectures/05/logs/retrieval_n0.txt 2>&1
 AIE_RAG_NEIGHBORS=1 uv run python -m app.retrieval "LoRA QLoRA 違い" > lectures/05/logs/retrieval_n1.txt 2>&1
 
+# 検索の段階だけをコードで採点（正解ページの recall、表をそのまま answer.md に貼れる）
+uv run python lectures/05/check_recall.py > lectures/05/logs/recall.md 2>&1
+
 run q1_before_n0 0 "$Q1"
 run q1_after_n1  1 "$Q1"
 run q2_before_n0 0 "$Q2"
@@ -36,6 +39,9 @@ for f in lectures/05/logs/q*_*.txt; do
   echo "--- $(basename "$f")"
   grep -E '^\[(model|tool call|time|usage|cost)\]' "$f"
 done
+echo
+echo "=== 検索の採点（recall） ==="
+cat lectures/05/logs/recall.md
 echo
 echo "=== 検索だけの結果（ページ番号） ==="
 for f in lectures/05/logs/retrieval_n*.txt; do
