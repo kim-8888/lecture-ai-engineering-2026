@@ -135,7 +135,7 @@ TreeとGraphで、回答・引用根拠・時間・入力トークン数がど�
 ```bash
 git add lectures/05/answer.md
 # コードを変更した場合は、そのファイルも git add する
-git commit -m "第5回 演習・宿題"ba
+git commit -m "第5回 演習・宿題"
 git push -u origin lec05
 ```
 
